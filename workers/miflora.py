@@ -8,26 +8,26 @@ monitoredAttrs = ["temperature", "moisture", "light", "conductivity", "battery"]
 
 class MifloraWorker(BaseWorker):
   def _setup(self):
-    from miflora.miflora_poller import MiFloraPoller
-    from btlewrap.bluepy import BluepyBackend
-
 
     for name, mac in self.devices.items():
-      self.devices[name] = MiFloraPoller(mac, BluepyBackend)
+      self.devices[name] = mac
 
   def status_update(self):
     ret = []
-    for name, poller in self.devices.items():
+    for name, mac in self.devices.items():
       try:
-        ret += self.update_device_state(name, poller)
+        ret += self.update_device_state(name, mac)
       except RuntimeError:
         pass
 
     return ret
 
   @timeout(8.0)
+  def update_device_state(self, name, mac):
+    from miflora.miflora_poller import MiFloraPoller
+    from btlewrap.bluepy import BluepyBackend
 
-  def update_device_state(self, name, poller):
+    poller = MiFloraPoller(mac, BluepyBackend)
 
     ret = []
     for attr in monitoredAttrs:
